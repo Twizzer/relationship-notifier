@@ -2,8 +2,6 @@
 
 A powercord plugin that notifies you when someone removes you from their friends list or you are banned/kicked from a server.
 
-## Warning: If you get kicked, join back and get kicked again you won't get alerted. I'm not sure how to fix this and i can't really think of a workaround so if you have any ideas please submit a Pull Request
-
 # Requirements
 
 -  Powercord
