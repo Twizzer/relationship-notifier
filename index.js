@@ -4,36 +4,29 @@ const { FluxDispatcher: Dispatcher, getModule } = require('powercord/webpack')
 
 module.exports = class extends Plugin {
    async startPlugin() {
-      this.userStore = getModule(['getCurrentUser', 'getUser'], false)
-      this.guildStore = getModule(['getGuild'], false)
+      this.userStore = await getModule(['getCurrentUser', 'getUser'])
+      this.guildStore = await getModule(['getGuild'])
 
       this.cachedGuilds = [...this.guildStore.getGuilds()]
 
       Dispatcher.subscribe('RELATIONSHIP_REMOVE', this.relationshipCallback)
       Dispatcher.subscribe('GUILD_MEMBER_REMOVE', this.memberRemoveCallback)
       Dispatcher.subscribe('GUILD_BAN_ADD', this.banCallback)
+      Dispatcher.subscribe("GUILD_CREATE", this.guildCreate)
 
       this.mostRecentlyRemovedID = null
       this.mostRecentlyLeftGuild = null
 
-      const relationshipModule = getModule(['removeRelationship'], false)
+      const relationshipModule = await getModule(['removeRelationship'])
       inject('rn-relationship-check', relationshipModule, 'removeRelationship', (args, res) => {
          this.mostRecentlyRemovedID = args[0]
          return res
       })
 
-      const leaveGuild = getModule(['leaveGuild'], false)
+      const leaveGuild = await getModule(['leaveGuild'])
       inject('rn-guild-leave-check', leaveGuild, 'leaveGuild', (args, res) => {
-         console.log(args)
          this.mostRecentlyLeftGuild = args[0]
          this.removeGuildFromCache(args[0])
-         return res
-      })
-
-      const joinGuild = getModule(['joinGuild'])
-      inject('rn-guild-join-check', joinGuild, 'addGuild', (args, res) => {
-         console.log(args, res)
-         if (args[0] === this.mostRecentlyLeftGuild) this.mostRecentlyLeftGuild = null
          return res
       })
    }
@@ -45,6 +38,7 @@ module.exports = class extends Plugin {
       Dispatcher.unsubscribe('RELATIONSHIP_REMOVE', this.relationshipCallback)
       Dispatcher.unsubscribe('GUILD_MEMBER_REMOVE', this.memberRemoveCallback)
       Dispatcher.unsubscribe('GUILD_BAN_ADD', this.banCallback)
+      Dispatcher.unsubscribe("GUILD_CREATE", this.guildCreate)
    }
 
    banCallback = (data) => {
@@ -65,6 +59,10 @@ module.exports = class extends Plugin {
             }
          ]
       })
+   }
+   
+   guildCreate = (data)=>{
+      this.cachedGuilds.push(data.guild)
    }
 
    relationshipCallback = (data) => {
