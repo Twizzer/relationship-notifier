@@ -5,7 +5,7 @@ const { FluxDispatcher: Dispatcher, getModule } = require('powercord/webpack')
 module.exports = class extends Plugin {
    async startPlugin() {
       this.userStore = await getModule(['getCurrentUser', 'getUser'])
-      this.guildStore = await getModule(['getGuild'])
+      this.guildStore = await getModule(['getGuild', 'getGuilds'])
 
       this.cachedGuilds = [...this.guildStore.getGuilds()]
 
