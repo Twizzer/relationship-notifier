@@ -12,7 +12,7 @@ module.exports = class extends Plugin {
       Dispatcher.subscribe('RELATIONSHIP_REMOVE', this.relationshipCallback)
       Dispatcher.subscribe('GUILD_MEMBER_REMOVE', this.memberRemoveCallback)
       Dispatcher.subscribe('GUILD_BAN_ADD', this.banCallback)
-      Dispatcher.subscribe("GUILD_CREATE", this.guildCreate)
+      Dispatcher.subscribe('GUILD_CREATE', this.guildCreate)
 
       this.mostRecentlyRemovedID = null
       this.mostRecentlyLeftGuild = null
@@ -38,12 +38,12 @@ module.exports = class extends Plugin {
       Dispatcher.unsubscribe('RELATIONSHIP_REMOVE', this.relationshipCallback)
       Dispatcher.unsubscribe('GUILD_MEMBER_REMOVE', this.memberRemoveCallback)
       Dispatcher.unsubscribe('GUILD_BAN_ADD', this.banCallback)
-      Dispatcher.unsubscribe("GUILD_CREATE", this.guildCreate)
+      Dispatcher.unsubscribe('GUILD_CREATE', this.guildCreate)
    }
 
    banCallback = (data) => {
       if (data.user.id !== this.userStore.getCurrentUser().id) return
-      let guild = this.cachedGuilds.find(g => g.id == data.guildId)
+      let guild = this.cachedGuilds.find((g) => g.id == data.guildId)
       if (!guild || guild === null) return
       this.removeGuildFromCache(guild.id)
       powercord.api.notices.sendToast(`rn_${this.random(20)}`, {
@@ -60,13 +60,13 @@ module.exports = class extends Plugin {
          ]
       })
    }
-   
-   guildCreate = (data)=>{
+
+   guildCreate = (data) => {
       this.cachedGuilds.push(data.guild)
    }
 
    relationshipCallback = (data) => {
-      if (data.relationship.type === 3) return
+      if (data.relationship.type === 3 || data.relationship.type === 4) return
       if (this.mostRecentlyRemovedID === data.relationship.id) {
          this.mostRecentlyRemovedID = null
          return
@@ -95,7 +95,7 @@ module.exports = class extends Plugin {
          return
       }
       if (data.user.id !== this.userStore.getCurrentUser().id) return
-      let guild = this.cachedGuilds.find(g => g.id == data.guildId)
+      let guild = this.cachedGuilds.find((g) => g.id == data.guildId)
       if (!guild || guild === null) return
       this.removeGuildFromCache(guild.id)
       powercord.api.notices.sendToast(`rn_${this.random(20)}`, {
@@ -113,11 +113,11 @@ module.exports = class extends Plugin {
       })
       this.mostRecentlyLeftGuild = null
    }
-   
-   removeGuildFromCache(id){
-      const index = this.cachedGuilds.indexOf(this.cachedGuilds.find(g => g.id ==i d))
+
+   removeGuildFromCache(id) {
+      const index = this.cachedGuilds.indexOf(this.cachedGuilds.find((g) => g.id == id))
       if (index == -1) return
-      this.cachedGuilds.splice(index,1)
+      this.cachedGuilds.splice(index, 1)
    }
 
    random() {
