@@ -1,0 +1,7 @@
+{
+   "name": "Relationships Notifier",
+   "description": "Notifies you when someone removes you from their friends list or you are banned/kicked from a server.",
+   "author": "hellbound#9999",
+   "version": "1.0.0",
+   "license": "Unlicensed"
+}
