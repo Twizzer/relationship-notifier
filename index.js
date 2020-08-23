@@ -47,7 +47,7 @@ module.exports = class extends Plugin {
       if (!guild || guild === null) return
       this.removeGuildFromCache(guild.id)
       powercord.api.notices.sendToast(`rn_${this.random(20)}`, {
-         header: "You've been banned!",
+         header: "You've been banned",
          content: `Name: ${guild.name}`,
          type: 'danger',
          buttons: [
@@ -99,7 +99,7 @@ module.exports = class extends Plugin {
       if (!guild || guild === null) return
       this.removeGuildFromCache(guild.id)
       powercord.api.notices.sendToast(`rn_${this.random(20)}`, {
-         header: "You've been kicked!",
+         header: "You've been kicked",
          content: `Server Name: ${guild.name}`,
          type: 'danger',
          buttons: [

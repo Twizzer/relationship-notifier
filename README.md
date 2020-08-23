@@ -10,6 +10,12 @@ A powercord plugin that notifies you when someone removes you from their friends
 
 -  `git clone https://github.com/hellbound1337/relationships-notifier.git`
 
+# Preview
+
+<img src="https://i.imgur.com/y7yvfUT.png"/>
+<img src="https://i.imgur.com/if6iau0.png"/>
+<img src="https://i.imgur.com/5WOumeU.png"/>
+
 # Support
 
 -  hellbound#9999
