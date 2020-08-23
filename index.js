@@ -7,7 +7,7 @@ module.exports = class extends Plugin {
       this.userStore = await getModule(['getCurrentUser', 'getUser'])
       this.guildStore = await getModule(['getGuild', 'getGuilds'])
 
-      this.cachedGuilds = [...this.guildStore.getGuilds()]
+      this.cachedGuilds = [...Object.values(this.guildStore.getGuilds())]
 
       Dispatcher.subscribe('RELATIONSHIP_REMOVE', this.relationshipCallback)
       Dispatcher.subscribe('GUILD_MEMBER_REMOVE', this.memberRemoveCallback)
