@@ -115,7 +115,7 @@ module.exports = class extends Plugin {
    }
    
    removeGuildFromCache(id){
-      const index = this.cachedGuilds.indexOf(this.cachedGuilds.find(g => g.id ==i d))
+      const index = this.cachedGuilds.indexOf(this.cachedGuilds.find(g => g.id == id))
       if (index == -1) return
       this.cachedGuilds.splice(index,1)
    }
