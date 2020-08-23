@@ -66,8 +66,7 @@ module.exports = class extends Plugin {
    relationshipCallback = (data) => {
       if (data.relationship.type === 3) return
       if (this.mostRecentlyRemovedID === data.relationship.id) {
-         this.mostRecentlyRemovedID = null
-         return
+         return (this.mostRecentlyRemovedID = null)
       }
       let user = this.userStore.getUser(data.relationship.id)
       if (!user || user === null) return
@@ -89,8 +88,7 @@ module.exports = class extends Plugin {
 
    memberRemoveCallback = (data) => {
       if (this.mostRecentlyLeftGuild === data.guildId) {
-         this.mostRecentlyLeftGuild = null
-         return
+         return (this.mostRecentlyLeftGuild = null)
       }
       if (data.user.id !== this.userStore.getCurrentUser().id) return
       let guild = this.guildStore.getGuild(data.guildId)
