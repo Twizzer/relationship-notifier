@@ -7,8 +7,10 @@ module.exports = class extends Plugin {
       this.userStore = getModule(['getCurrentUser', 'getUser'], false)
       this.guildStore = getModule(['getGuild'], false)
 
-      Dispatcher.subscribe('RELATIONSHIP_REMOVE', this.relationshipCallback.bind(this))
-      Dispatcher.subscribe('GUILD_MEMBER_REMOVE', this.memberRemoveCallback.bind(this))
+      this.cachedGuilds = [...this.guildStore.getGuilds()]
+
+      Dispatcher.subscribe('RELATIONSHIP_REMOVE', this.relationshipCallback)
+      Dispatcher.subscribe('GUILD_MEMBER_REMOVE', this.memberRemoveCallback)
       Dispatcher.subscribe('GUILD_BAN_ADD', this.banCallback)
 
       this.mostRecentlyRemovedID = null
@@ -24,6 +26,7 @@ module.exports = class extends Plugin {
       inject('rn-guild-leave-check', leaveGuild, 'leaveGuild', (args, res) => {
          console.log(args)
          this.mostRecentlyLeftGuild = args[0]
+         this.removeGuildFromCache(args[0])
          return res
       })
 
@@ -39,15 +42,16 @@ module.exports = class extends Plugin {
       uninject('rn-relationship-check')
       uninject('rn-guild-join-check')
       uninject('rn-guild-leave-check')
-      Dispatcher.unsubscribe('RELATIONSHIP_REMOVE', this.relationshipCallback.bind(this))
-      Dispatcher.unsubscribe('GUILD_MEMBER_REMOVE', this.memberRemoveCallback.bind(this))
+      Dispatcher.unsubscribe('RELATIONSHIP_REMOVE', this.relationshipCallback)
+      Dispatcher.unsubscribe('GUILD_MEMBER_REMOVE', this.memberRemoveCallback)
       Dispatcher.unsubscribe('GUILD_BAN_ADD', this.banCallback)
    }
 
    banCallback = (data) => {
       if (data.user.id !== this.userStore.getCurrentUser().id) return
-      let guild = this.guildStore.getGuild(data.guildId)
+      let guild = this.cachedGuilds.find(g => g.id == data.guildId)
       if (!guild || guild === null) return
+      this.removeGuildFromCache(guild.id)
       powercord.api.notices.sendToast(`rn_${this.random(20)}`, {
          header: "You've been banned!",
          content: `Name: ${guild.name}`,
@@ -66,7 +70,8 @@ module.exports = class extends Plugin {
    relationshipCallback = (data) => {
       if (data.relationship.type === 3) return
       if (this.mostRecentlyRemovedID === data.relationship.id) {
-         return (this.mostRecentlyRemovedID = null)
+         this.mostRecentlyRemovedID = null
+         return
       }
       let user = this.userStore.getUser(data.relationship.id)
       if (!user || user === null) return
@@ -88,11 +93,13 @@ module.exports = class extends Plugin {
 
    memberRemoveCallback = (data) => {
       if (this.mostRecentlyLeftGuild === data.guildId) {
-         return (this.mostRecentlyLeftGuild = null)
+         this.mostRecentlyLeftGuild = null
+         return
       }
       if (data.user.id !== this.userStore.getCurrentUser().id) return
-      let guild = this.guildStore.getGuild(data.guildId)
+      let guild = this.cachedGuilds.find(g => g.id == data.guildId)
       if (!guild || guild === null) return
+      this.removeGuildFromCache(guild.id)
       powercord.api.notices.sendToast(`rn_${this.random(20)}`, {
          header: "You've been kicked!",
          content: `Server Name: ${guild.name}`,
@@ -107,6 +114,12 @@ module.exports = class extends Plugin {
          ]
       })
       this.mostRecentlyLeftGuild = null
+   }
+   
+   removeGuildFromCache(id){
+      const index = this.cachedGuilds.indexOf(this.cachedGuilds.find(g => g.id ==i d))
+      if (index == -1) return
+      this.cachedGuilds.splice(index,1)
    }
 
    random() {
