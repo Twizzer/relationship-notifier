@@ -72,7 +72,7 @@ module.exports = class extends Plugin {
          type: 'danger',
          buttons: [
             {
-               text: replaceWithVars('button', this.settings.get('buttonText'), guild),
+               text: this.replaceWithVars('button', this.settings.get('buttonText'), guild),
                color: 'red',
                size: 'small',
                look: 'outlined'
@@ -99,7 +99,7 @@ module.exports = class extends Plugin {
          type: 'danger',
          buttons: [
             {
-               text: replaceWithVars('button', this.settings.get('buttonText'), user),
+               text: this.replaceWithVars('button', this.settings.get('buttonText'), user),
                color: 'red',
                size: 'small',
                look: 'outlined'
@@ -124,7 +124,7 @@ module.exports = class extends Plugin {
          type: 'danger',
          buttons: [
             {
-               text: replaceWithVars('button', this.settings.get('buttonText'), guild),
+               text: this.replaceWithVars('button', this.settings.get('buttonText'), guild),
                color: 'red',
                size: 'small',
                look: 'outlined'
