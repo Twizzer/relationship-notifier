@@ -34,6 +34,13 @@ module.exports = class Settings extends React.Component {
             >
                Ban
             </SwitchItem>
+            <SwitchItem
+               note={'Display notifications when you get kicked from a group chat.'}
+               value={getSetting('group')}
+               onChange={() => toggleSetting('group')}
+            >
+               Group
+            </SwitchItem>
             <Category
                name={'Text'}
                description={'Customize the notifications the way you want.'}
@@ -47,7 +54,10 @@ module.exports = class Settings extends React.Component {
                <FormText>%servername, %serverid</FormText>
                <br></br>
                <FormTitle>Button Variables</FormTitle>
-               <FormText>%usernameorservername</FormText>
+               <FormText>%name</FormText>
+               <br></br>
+               <FormTitle>Group Variables</FormTitle>
+               <FormText>%groupname, %groupid</FormText>
                <br></br>
                <TextInput
                   value={getSetting('removeTitle')}
@@ -90,6 +100,20 @@ module.exports = class Settings extends React.Component {
                   note={'The text the notification will have when you get banned from a server.'}
                >
                   Banned Text
+               </TextInput>
+               <TextInput
+                  value={getSetting('groupTitle')}
+                  onChange={(v) => updateSetting('groupTitle', v)}
+                  note={'The title the notification will have when you get kicked from a group chat.'}
+               >
+                  Group Title
+               </TextInput>
+               <TextInput
+                  value={getSetting('groupText')}
+                  onChange={(v) => updateSetting('groupText', v)}
+                  note={'The text the notification will have when you get kicked from a group chat.'}
+               >
+                  Group Text
                </TextInput>
                <TextInput
                   value={getSetting('buttonText')}

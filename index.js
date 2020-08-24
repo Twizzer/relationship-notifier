@@ -9,13 +9,16 @@ module.exports = class extends Plugin {
       if (!this.settings.get('remove')) this.settings.set('remove', true)
       if (!this.settings.get('kick')) this.settings.set('kick', true)
       if (!this.settings.get('ban')) this.settings.set('ban', true)
+      if (!this.settings.get('group')) this.settings.set('group', true)
       if (!this.settings.get('removeTitle')) this.settings.set('removeTitle', 'Someone removed you')
-      if (!this.settings.get('kickTitle')) this.settings.set('kickTitle', "You've been kicked")
-      if (!this.settings.get('banTitle')) this.settings.set('banTitle', "You've been banned")
       if (!this.settings.get('removeText')) this.settings.set('removeText', 'Tag: %username#%usertag')
-      if (!this.settings.get('kickText')) this.settings.set('kickText', 'Server Name: %servername')
+      if (!this.settings.get('banTitle')) this.settings.set('banTitle', "You've been banned")
       if (!this.settings.get('banText')) this.settings.set('banText', 'Server Name: %servername')
-      if (!this.settings.get('buttonText')) this.settings.set('buttonText', 'Fuck %usernameorservername')
+      if (!this.settings.get('groupTitle')) this.settings.set('groupTitle', "You've kicked from a group")
+      if (!this.settings.get('groupText')) this.settings.set('groupText', 'Group Name: %groupname')
+      if (!this.settings.get('kickTitle')) this.settings.set('kickTitle', "You've been kicked")
+      if (!this.settings.get('kickText')) this.settings.set('kickText', 'Server Name: %servername')
+      if (!this.settings.get('buttonText')) this.settings.set('buttonText', 'Fuck %name')
 
       powercord.api.settings.registerSettings('relationships-notifier', {
          category: this.entityID,
@@ -25,16 +28,21 @@ module.exports = class extends Plugin {
 
       this.userStore = await getModule(['getCurrentUser', 'getUser'])
       this.guildStore = await getModule(['getGuild', 'getGuilds'])
+      this.channelStore = await getModule(['getChannel', 'getChannels'])
 
+      this.cachedGroups = [...Object.values(this.channelStore.getChannels())].filter((c) => c.type === 3)
       this.cachedGuilds = [...Object.values(this.guildStore.getGuilds())]
 
-      Dispatcher.subscribe('RELATIONSHIP_REMOVE', this.relationshipCallback)
-      Dispatcher.subscribe('GUILD_MEMBER_REMOVE', this.memberRemoveCallback)
-      Dispatcher.subscribe('GUILD_BAN_ADD', this.banCallback)
+      Dispatcher.subscribe('RELATIONSHIP_REMOVE', this.relationshipRemove)
+      Dispatcher.subscribe('GUILD_MEMBER_REMOVE', this.memberRemove)
+      Dispatcher.subscribe('GUILD_BAN_ADD', this.ban)
       Dispatcher.subscribe('GUILD_CREATE', this.guildCreate)
+      Dispatcher.subscribe('CHANNEL_CREATE', this.channelCreate)
+      Dispatcher.subscribe('CHANNEL_DELETE', this.channelDelete)
 
       this.mostRecentlyRemovedID = null
       this.mostRecentlyLeftGuild = null
+      this.mostRecentlyLeftGroup = null
 
       const relationshipModule = await getModule(['removeRelationship'])
       inject('rn-relationship-check', relationshipModule, 'removeRelationship', (args, res) => {
@@ -48,6 +56,13 @@ module.exports = class extends Plugin {
          this.removeGuildFromCache(args[0])
          return res
       })
+
+      const closePrivateChannel = await getModule(['closePrivateChannel'])
+      inject('rn-group-check', closePrivateChannel, 'closePrivateChannel', (args, res) => {
+         this.mostRecentlyLeftGroup = args[0]
+         this.removeGroupFromCache(args[0])
+         return res
+      })
    }
 
    pluginWillUnload() {
@@ -55,37 +70,81 @@ module.exports = class extends Plugin {
       uninject('rn-relationship-check')
       uninject('rn-guild-join-check')
       uninject('rn-guild-leave-check')
-      Dispatcher.unsubscribe('RELATIONSHIP_REMOVE', this.relationshipCallback)
-      Dispatcher.unsubscribe('GUILD_MEMBER_REMOVE', this.memberRemoveCallback)
-      Dispatcher.unsubscribe('GUILD_BAN_ADD', this.banCallback)
+      uninject('rn-group-check')
+      Dispatcher.unsubscribe('RELATIONSHIP_REMOVE', this.relationshipRemove)
+      Dispatcher.unsubscribe('GUILD_MEMBER_REMOVE', this.memberRemove)
+      Dispatcher.unsubscribe('GUILD_BAN_ADD', this.ban)
       Dispatcher.unsubscribe('GUILD_CREATE', this.guildCreate)
-   }
-
-   banCallback = (data) => {
-      if (data.user.id !== this.userStore.getCurrentUser().id) return
-      let guild = this.cachedGuilds.find((g) => g.id == data.guildId)
-      if (!guild || guild === null) return
-      this.removeGuildFromCache(guild.id)
-      powercord.api.notices.sendToast(`rn_${this.random(20)}`, {
-         header: this.replaceWithVars('ban', this.settings.get('banTitle'), guild),
-         content: this.replaceWithVars('ban', this.settings.get('banText'), guild),
-         type: 'danger',
-         buttons: [
-            {
-               text: this.replaceWithVars('button', this.settings.get('buttonText'), guild),
-               color: 'red',
-               size: 'small',
-               look: 'outlined'
-            }
-         ]
-      })
+      Dispatcher.unsubscribe('CHANNEL_CREATE', this.channelCreate)
+      Dispatcher.unsubscribe('CHANNEL_DELETE', this.channelDelete)
    }
 
    guildCreate = (data) => {
       this.cachedGuilds.push(data.guild)
    }
 
-   relationshipCallback = (data) => {
+   channelCreate = (data) => {
+      if ((data.channel && data.channel.type !== 3) || this.cachedGroups.find((g) => g.id === data.channel.id)) return
+      this.cachedGroups.push(data.channel)
+   }
+
+   channelDelete = (data) => {
+      if ((data.channel && data.channel.type !== 3) || !this.cachedGroups.find((g) => g.id === data.channel.id)) return
+      let channel = this.cachedGroups.find((g) => g.id == data.channel.id)
+      if (!channel || channel === null) return
+      this.removeGroupFromCache(channel.id)
+      if (this.settings.get('group')) {
+         powercord.api.notices.sendToast(`rn_${this.random(20)}`, {
+            header: this.replaceWithVars('group', this.settings.get('groupTitle'), channel),
+            content: this.replaceWithVars('group', this.settings.get('groupText'), channel),
+            type: 'danger',
+            buttons: [
+               {
+                  text: this.replaceWithVars('button', this.settings.get('buttonText'), channel),
+                  color: 'red',
+                  size: 'small',
+                  look: 'outlined'
+               }
+            ]
+         })
+      }
+   }
+
+   removeGroupFromCache = (id) => {
+      const index = this.cachedGroups.indexOf(this.cachedGroups.find((g) => g.id == id))
+      if (index == -1) return
+      this.cachedGroups.splice(index, 1)
+   }
+
+   removeGuildFromCache = (id) => {
+      const index = this.cachedGuilds.indexOf(this.cachedGuilds.find((g) => g.id == id))
+      if (index == -1) return
+      this.cachedGuilds.splice(index, 1)
+   }
+
+   ban = (data) => {
+      if (data.user.id !== this.userStore.getCurrentUser().id) return
+      let guild = this.cachedGuilds.find((g) => g.id == data.guildId)
+      if (!guild || guild === null) return
+      this.removeGuildFromCache(guild.id)
+      if (this.settings.get('ban')) {
+         powercord.api.notices.sendToast(`rn_${this.random(20)}`, {
+            header: this.replaceWithVars('ban', this.settings.get('banTitle'), guild),
+            content: this.replaceWithVars('ban', this.settings.get('banText'), guild),
+            type: 'danger',
+            buttons: [
+               {
+                  text: this.replaceWithVars('button', this.settings.get('buttonText'), guild),
+                  color: 'red',
+                  size: 'small',
+                  look: 'outlined'
+               }
+            ]
+         })
+      }
+   }
+
+   relationshipRemove = (data) => {
       if (data.relationship.type === 3 || data.relationship.type === 4) return
       if (this.mostRecentlyRemovedID === data.relationship.id) {
          this.mostRecentlyRemovedID = null
@@ -93,23 +152,25 @@ module.exports = class extends Plugin {
       }
       let user = this.userStore.getUser(data.relationship.id)
       if (!user || user === null) return
-      powercord.api.notices.sendToast(`rn_${this.random(20)}`, {
-         header: this.replaceWithVars('remove', this.settings.get('removeTitle'), user),
-         content: this.replaceWithVars('remove', this.settings.get('removeText'), user),
-         type: 'danger',
-         buttons: [
-            {
-               text: this.replaceWithVars('button', this.settings.get('buttonText'), user),
-               color: 'red',
-               size: 'small',
-               look: 'outlined'
-            }
-         ]
-      })
+      if (this.settings.get('remove')) {
+         powercord.api.notices.sendToast(`rn_${this.random(20)}`, {
+            header: this.replaceWithVars('remove', this.settings.get('removeTitle'), user),
+            content: this.replaceWithVars('remove', this.settings.get('removeText'), user),
+            type: 'danger',
+            buttons: [
+               {
+                  text: this.replaceWithVars('button', this.settings.get('buttonText'), user),
+                  color: 'red',
+                  size: 'small',
+                  look: 'outlined'
+               }
+            ]
+         })
+      }
       this.mostRecentlyRemovedID = null
    }
 
-   memberRemoveCallback = (data) => {
+   memberRemove = (data) => {
       if (this.mostRecentlyLeftGuild === data.guildId) {
          this.mostRecentlyLeftGuild = null
          return
@@ -118,26 +179,22 @@ module.exports = class extends Plugin {
       let guild = this.cachedGuilds.find((g) => g.id == data.guildId)
       if (!guild || guild === null) return
       this.removeGuildFromCache(guild.id)
-      powercord.api.notices.sendToast(`rn_${this.random(20)}`, {
-         header: this.replaceWithVars('kick', this.settings.get('kickTitle'), guild),
-         content: this.replaceWithVars('kick', this.settings.get('kickText'), guild),
-         type: 'danger',
-         buttons: [
-            {
-               text: this.replaceWithVars('button', this.settings.get('buttonText'), guild),
-               color: 'red',
-               size: 'small',
-               look: 'outlined'
-            }
-         ]
-      })
+      if (this.settings.get('kick')) {
+         powercord.api.notices.sendToast(`rn_${this.random(20)}`, {
+            header: this.replaceWithVars('kick', this.settings.get('kickTitle'), guild),
+            content: this.replaceWithVars('kick', this.settings.get('kickText'), guild),
+            type: 'danger',
+            buttons: [
+               {
+                  text: this.replaceWithVars('button', this.settings.get('buttonText'), guild),
+                  color: 'red',
+                  size: 'small',
+                  look: 'outlined'
+               }
+            ]
+         })
+      }
       this.mostRecentlyLeftGuild = null
-   }
-
-   removeGuildFromCache(id) {
-      const index = this.cachedGuilds.indexOf(this.cachedGuilds.find((g) => g.id == id))
-      if (index == -1) return
-      this.cachedGuilds.splice(index, 1)
    }
 
    random() {
@@ -149,16 +206,28 @@ module.exports = class extends Plugin {
       return result
    }
 
-   replaceWithVars(type, text, serverOrUser) {
+   replaceWithVars(type, text, object) {
       if (type === 'remove') {
          return text
-            .replace('%username', serverOrUser.username)
-            .replace('%usertag', serverOrUser.discriminator)
-            .replace('%userid', serverOrUser.id)
+            .replace('%username', object.username)
+            .replace('%usertag', object.discriminator)
+            .replace('%userid', object.id)
       } else if (['ban', 'kick'].includes(type)) {
-         return text.replace('%servername', serverOrUser.name).replace('%serverid', serverOrUser.id)
-      } else if (type === 'button') {
-         return text.replace('%usernameorservername', serverOrUser.username ? serverOrUser.username : serverOrUser.name)
+         return text.replace('%servername', object.name).replace('%serverid', object.id)
+      } else if (type === 'button' && !object.type) {
+         return text.replace('%name', object.username ? object.username : object.name)
+      } else if (type === 'group') {
+         let name =
+            object.name.length === 0
+               ? object.recipients.map((id) => this.userStore.getUser(id).username).join(', ')
+               : object.name
+         return text.replace('%groupname', name).replace('%groupid', object.id)
+      } else {
+         let name =
+            object.name.length === 0
+               ? object.recipients.map((id) => this.userStore.getUser(id).username).join(', ')
+               : object.name
+         return text.replace('%name', name)
       }
    }
 }
