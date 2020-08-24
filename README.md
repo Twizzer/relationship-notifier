@@ -12,9 +12,13 @@ A powercord plugin that notifies you when someone removes you from their friends
 
 # Preview
 
-<img src="https://i.imgur.com/y7yvfUT.png"/>
-<img src="https://i.imgur.com/if6iau0.png"/>
-<img src="https://i.imgur.com/5WOumeU.png"/>
+<img src="https://i.imgur.com/5sdFepE.png"/>
+<img src="https://i.imgur.com/xs2IvJh.png"/>
+<img src="https://i.imgur.com/XrPBOIQ.png"/>
+<img src="https://i.imgur.com/x8Ac0HS.png"/>
+<img src="https://i.imgur.com/l8vH1TX.png"/>
+<img src="https://i.imgur.com/AOLOpn4.png"/>
+<img src="https://i.imgur.com/SKDP0y8.png"/>
 
 # Support
 
