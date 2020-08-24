@@ -1,9 +1,28 @@
 const { Plugin } = require('powercord/entities')
 const { inject, uninject } = require('powercord/injector')
 const { FluxDispatcher: Dispatcher, getModule } = require('powercord/webpack')
+const Settings = require('./components/Settings')
 
 module.exports = class extends Plugin {
    async startPlugin() {
+      if (!this.settings.get('textExpanded')) this.settings.set('textExpanded', false)
+      if (!this.settings.get('remove')) this.settings.set('remove', true)
+      if (!this.settings.get('kick')) this.settings.set('kick', true)
+      if (!this.settings.get('ban')) this.settings.set('ban', true)
+      if (!this.settings.get('removeTitle')) this.settings.set('removeTitle', 'Someone removed you')
+      if (!this.settings.get('kickTitle')) this.settings.set('kickTitle', "You've been kicked")
+      if (!this.settings.get('banTitle')) this.settings.set('banTitle', "You've been banned")
+      if (!this.settings.get('removeText')) this.settings.set('removeText', 'Tag: %username#%usertag')
+      if (!this.settings.get('kickText')) this.settings.set('kickText', 'Server Name: %servername')
+      if (!this.settings.get('banText')) this.settings.set('banText', 'Server Name: %servername')
+      if (!this.settings.get('buttonText')) this.settings.set('buttonText', ':(')
+
+      powercord.api.settings.registerSettings('relationships-notifier', {
+         category: this.entityID,
+         label: 'Relationships Notifier',
+         render: Settings
+      })
+
       this.userStore = await getModule(['getCurrentUser', 'getUser'])
       this.guildStore = await getModule(['getGuild', 'getGuilds'])
 
@@ -32,6 +51,7 @@ module.exports = class extends Plugin {
    }
 
    pluginWillUnload() {
+      powercord.api.settings.unregisterSettings('relationships-notifier')
       uninject('rn-relationship-check')
       uninject('rn-guild-join-check')
       uninject('rn-guild-leave-check')
@@ -47,12 +67,12 @@ module.exports = class extends Plugin {
       if (!guild || guild === null) return
       this.removeGuildFromCache(guild.id)
       powercord.api.notices.sendToast(`rn_${this.random(20)}`, {
-         header: "You've been banned",
-         content: `Server Name: ${guild.name}`,
+         header: this.replaceWithVars('ban', this.settings.get('banTitle'), guild),
+         content: this.replaceWithVars('ban', this.settings.get('banText'), guild),
          type: 'danger',
          buttons: [
             {
-               text: ':(',
+               text: this.settings.get('buttonText'),
                color: 'red',
                size: 'small',
                look: 'outlined'
@@ -74,12 +94,12 @@ module.exports = class extends Plugin {
       let user = this.userStore.getUser(data.relationship.id)
       if (!user || user === null) return
       powercord.api.notices.sendToast(`rn_${this.random(20)}`, {
-         header: `Someone removed you`,
-         content: `Tag: ${user.username}#${user.discriminator}`,
+         header: this.replaceWithVars('remove', this.settings.get('removeTitle'), user),
+         content: this.replaceWithVars('remove', this.settings.get('removeText'), user),
          type: 'danger',
          buttons: [
             {
-               text: ':(',
+               text: this.settings.get('buttonText'),
                color: 'red',
                size: 'small',
                look: 'outlined'
@@ -99,12 +119,12 @@ module.exports = class extends Plugin {
       if (!guild || guild === null) return
       this.removeGuildFromCache(guild.id)
       powercord.api.notices.sendToast(`rn_${this.random(20)}`, {
-         header: "You've been kicked",
-         content: `Server Name: ${guild.name}`,
+         header: this.replaceWithVars('kick', this.settings.get('kickTitle'), guild),
+         content: this.replaceWithVars('kick', this.settings.get('kickText'), guild),
          type: 'danger',
          buttons: [
             {
-               text: ':(',
+               text: this.settings.get('buttonText'),
                color: 'red',
                size: 'small',
                look: 'outlined'
@@ -127,5 +147,16 @@ module.exports = class extends Plugin {
          result += characters.charAt(Math.floor(Math.random() * characters.length))
       }
       return result
+   }
+
+   replaceWithVars(type, text, serverOrUser) {
+      if (type === 'remove') {
+         return text
+            .replace('%username', serverOrUser.username)
+            .replace('%usertag', serverOrUser.discriminator)
+            .replace('%userid', serverOrUser.id)
+      } else if (['ban', 'kick'].includes(type)) {
+         return text.replace('%servername', serverOrUser).replace('%serverid', serverOrUser.id)
+      }
    }
 }
