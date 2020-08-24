@@ -156,7 +156,7 @@ module.exports = class extends Plugin {
             .replace('%usertag', serverOrUser.discriminator)
             .replace('%userid', serverOrUser.id)
       } else if (['ban', 'kick'].includes(type)) {
-         return text.replace('%servername', serverOrUser).replace('%serverid', serverOrUser.id)
+         return text.replace('%servername', serverOrUser.name).replace('%serverid', serverOrUser.id)
       } else if (type === 'button') {
          return text.replace('%usernameorservername', serverOrUser.username ? serverOrUser.username : serverOrUser.name)
       }
