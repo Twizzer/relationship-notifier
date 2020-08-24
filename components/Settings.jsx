@@ -54,7 +54,7 @@ module.exports = class Settings extends React.Component {
                <FormText>%servername, %serverid</FormText>
                <br></br>
                <FormTitle>Button Variables</FormTitle>
-               <FormText>%name</FormText>
+               <FormText>%name (Adapts to type of notification)</FormText>
                <br></br>
                <FormTitle>Group Variables</FormTitle>
                <FormText>%groupname, %groupid</FormText>
