@@ -46,6 +46,9 @@ module.exports = class Settings extends React.Component {
                <FormTitle>Kick & Ban Variables</FormTitle>
                <FormText>%servername, %serverid</FormText>
                <br></br>
+               <FormTitle>Button Variables</FormTitle>
+               <FormText>%usernameorservername</FormText>
+               <br></br>
                <TextInput
                   value={getSetting('removeTitle')}
                   onChange={(v) => updateSetting('removeTitle', v)}

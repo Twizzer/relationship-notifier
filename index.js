@@ -15,7 +15,7 @@ module.exports = class extends Plugin {
       if (!this.settings.get('removeText')) this.settings.set('removeText', 'Tag: %username#%usertag')
       if (!this.settings.get('kickText')) this.settings.set('kickText', 'Server Name: %servername')
       if (!this.settings.get('banText')) this.settings.set('banText', 'Server Name: %servername')
-      if (!this.settings.get('buttonText')) this.settings.set('buttonText', ':(')
+      if (!this.settings.get('buttonText')) this.settings.set('buttonText', 'Fuck %usernameorservername')
 
       powercord.api.settings.registerSettings('relationships-notifier', {
          category: this.entityID,
@@ -72,7 +72,7 @@ module.exports = class extends Plugin {
          type: 'danger',
          buttons: [
             {
-               text: this.settings.get('buttonText'),
+               text: replaceWithVars('button', this.settings.get('buttonText'), guild),
                color: 'red',
                size: 'small',
                look: 'outlined'
@@ -99,7 +99,7 @@ module.exports = class extends Plugin {
          type: 'danger',
          buttons: [
             {
-               text: this.settings.get('buttonText'),
+               text: replaceWithVars('button', this.settings.get('buttonText'), user),
                color: 'red',
                size: 'small',
                look: 'outlined'
@@ -124,7 +124,7 @@ module.exports = class extends Plugin {
          type: 'danger',
          buttons: [
             {
-               text: this.settings.get('buttonText'),
+               text: replaceWithVars('button', this.settings.get('buttonText'), guild),
                color: 'red',
                size: 'small',
                look: 'outlined'
@@ -157,6 +157,8 @@ module.exports = class extends Plugin {
             .replace('%userid', serverOrUser.id)
       } else if (['ban', 'kick'].includes(type)) {
          return text.replace('%servername', serverOrUser).replace('%serverid', serverOrUser.id)
+      } else if (type === 'button') {
+         return text.replace('%usernameorservername', serverOrUser.username ? serverOrUser.username : serverOrUser.name)
       }
    }
 }
