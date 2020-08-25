@@ -1,18 +1,18 @@
-const { React, getModuleByDisplayName, getModule } = require('powercord/webpack')
-const { Button, AsyncComponent } = require('powercord/components')
-const { TextInput, Category, SwitchItem } = require('powercord/components/settings')
-const FormText = AsyncComponent.from(getModuleByDisplayName('FormText'))
-const FormTitle = AsyncComponent.from(getModuleByDisplayName('FormTitle'))
-const Flex = AsyncComponent.from(getModuleByDisplayName('flex'))
-const FlexChild = getModule(['flexChild'], false).flexChild
+const { React, getModuleByDisplayName, getModule } = require('powercord/webpack');
+const { Button, AsyncComponent } = require('powercord/components');
+const { TextInput, Category, SwitchItem } = require('powercord/components/settings');
+const FormText = AsyncComponent.from(getModuleByDisplayName('FormText'));
+const FormTitle = AsyncComponent.from(getModuleByDisplayName('FormTitle'));
+const Flex = AsyncComponent.from(getModuleByDisplayName('flex'));
+const FlexChild = getModule(['flexChild'], false).flexChild;
 
 module.exports = class Settings extends React.Component {
    constructor(props) {
-      super()
+      super();
    }
 
    render() {
-      const { getSetting, updateSetting, toggleSetting } = this.props
+      const { getSetting, updateSetting, toggleSetting } = this.props;
       return (
          <div>
             <SwitchItem
@@ -147,6 +147,6 @@ module.exports = class Settings extends React.Component {
                </TextInput>
             </Category>
          </div>
-      )
+      );
    }
-}
+};
