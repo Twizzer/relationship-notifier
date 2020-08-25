@@ -1,8 +1,10 @@
-const { React, getModuleByDisplayName } = require('powercord/webpack')
+const { React, getModuleByDisplayName, getModule } = require('powercord/webpack')
 const { Button, AsyncComponent } = require('powercord/components')
 const { TextInput, Category, SwitchItem } = require('powercord/components/settings')
 const FormText = AsyncComponent.from(getModuleByDisplayName('FormText'))
 const FormTitle = AsyncComponent.from(getModuleByDisplayName('FormTitle'))
+const Flex = AsyncComponent.from(getModuleByDisplayName('flex'))
+const FlexChild = getModule(['flexChild'], false).flexChild
 
 module.exports = class Settings extends React.Component {
    constructor(props) {
@@ -47,17 +49,38 @@ module.exports = class Settings extends React.Component {
                opened={getSetting('textExpanded')}
                onChange={() => updateSetting('textExpanded', !getSetting('textExpanded'))}
             >
-               <FormTitle>Remove Variables</FormTitle>
-               <FormText>%username, %userid, %usertag</FormText>
-               <br></br>
-               <FormTitle>Kick & Ban Variables</FormTitle>
-               <FormText>%servername, %serverid</FormText>
-               <br></br>
-               <FormTitle>Button Variables</FormTitle>
-               <FormText>%name (Adapts to type of notification)</FormText>
-               <br></br>
-               <FormTitle>Group Variables</FormTitle>
-               <FormText>%groupname, %groupid</FormText>
+               <Flex style={{ justifyContent: 'center' }}>
+                  <div className={FlexChild}>
+                     <FormTitle>Remove Variables</FormTitle>
+                     <FormText style={{ textAlign: 'center' }}>
+                        %username
+                        <br></br>
+                        %userid
+                        <br></br>
+                        %usertag
+                     </FormText>
+                  </div>
+                  <div className={FlexChild}>
+                     <FormTitle>Kick & Ban Variables</FormTitle>
+                     <FormText style={{ textAlign: 'center' }}>
+                        %servername
+                        <br></br>
+                        %serverid
+                     </FormText>
+                  </div>
+                  <div className={FlexChild}>
+                     <FormTitle>Button Variables</FormTitle>
+                     <FormText style={{ textAlign: 'center' }}>%name</FormText>
+                  </div>
+                  <div className={FlexChild}>
+                     <FormTitle>Group Variables</FormTitle>
+                     <FormText style={{ textAlign: 'center' }}>
+                        %groupname
+                        <br></br>
+                        %groupid
+                     </FormText>
+                  </div>
+               </Flex>
                <br></br>
                <TextInput
                   value={getSetting('removeTitle')}
