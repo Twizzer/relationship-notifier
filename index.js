@@ -3,7 +3,7 @@ const { inject, uninject } = require('powercord/injector');
 const { FluxDispatcher: Dispatcher, getModule } = require('powercord/webpack');
 const Settings = require('./components/Settings');
 
-module.exports = class extends Plugin {
+module.exports = class RelationshipsNotifier extends Plugin {
    async startPlugin() {
       if (!this.settings.get('textExpanded')) this.settings.set('textExpanded', false);
       if (!this.settings.get('remove')) this.settings.set('remove', true);
