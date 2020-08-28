@@ -5,21 +5,6 @@ const Settings = require('./components/Settings');
 
 module.exports = class RelationshipsNotifier extends Plugin {
    async startPlugin() {
-      if (!this.settings.get('textExpanded')) this.settings.set('textExpanded', false);
-      if (!this.settings.get('remove')) this.settings.set('remove', true);
-      if (!this.settings.get('kick')) this.settings.set('kick', true);
-      if (!this.settings.get('ban')) this.settings.set('ban', true);
-      if (!this.settings.get('group')) this.settings.set('group', true);
-      if (!this.settings.get('removeTitle')) this.settings.set('removeTitle', 'Someone removed you');
-      if (!this.settings.get('removeText')) this.settings.set('removeText', 'Tag: %username#%usertag');
-      if (!this.settings.get('banTitle')) this.settings.set('banTitle', "You've been banned");
-      if (!this.settings.get('banText')) this.settings.set('banText', 'Server Name: %servername');
-      if (!this.settings.get('groupTitle')) this.settings.set('groupTitle', "You've kicked from a group");
-      if (!this.settings.get('groupText')) this.settings.set('groupText', 'Group Name: %groupname');
-      if (!this.settings.get('kickTitle')) this.settings.set('kickTitle', "You've been kicked");
-      if (!this.settings.get('kickText')) this.settings.set('kickText', 'Server Name: %servername');
-      if (!this.settings.get('buttonText')) this.settings.set('buttonText', 'Fuck %name');
-
       powercord.api.settings.registerSettings('relationships-notifier', {
          category: this.entityID,
          label: 'Relationships Notifier',
@@ -93,14 +78,14 @@ module.exports = class RelationshipsNotifier extends Plugin {
       let channel = this.cachedGroups.find((g) => g.id == data.channel.id);
       if (!channel || channel === null) return;
       this.removeGroupFromCache(channel.id);
-      if (this.settings.get('group')) {
+      if (this.settings.get('group', true)) {
          powercord.api.notices.sendToast(`rn_${this.random(20)}`, {
-            header: this.replaceWithVars('group', this.settings.get('groupTitle'), channel),
-            content: this.replaceWithVars('group', this.settings.get('groupText'), channel),
+            header: this.replaceWithVars('group', this.settings.get('groupTitle', "You've kicked from a group"), channel),
+            content: this.replaceWithVars('group', this.settings.get('groupText', 'Group Name: %groupname'), channel),
             type: 'danger',
             buttons: [
                {
-                  text: this.replaceWithVars('button', this.settings.get('buttonText'), channel),
+                  text: this.replaceWithVars('button', this.settings.get('buttonText', 'Fuck %name'), channel),
                   color: 'red',
                   size: 'small',
                   look: 'outlined'
@@ -127,14 +112,14 @@ module.exports = class RelationshipsNotifier extends Plugin {
       let guild = this.cachedGuilds.find((g) => g.id == data.guildId);
       if (!guild || guild === null) return;
       this.removeGuildFromCache(guild.id);
-      if (this.settings.get('ban')) {
+      if (this.settings.get('ban', true)) {
          powercord.api.notices.sendToast(`rn_${this.random(20)}`, {
-            header: this.replaceWithVars('ban', this.settings.get('banTitle'), guild),
-            content: this.replaceWithVars('ban', this.settings.get('banText'), guild),
+            header: this.replaceWithVars('ban', this.settings.get('banTitle', "You've been banned"), guild),
+            content: this.replaceWithVars('ban', this.settings.get('banText', 'Server Name: %servername'), guild),
             type: 'danger',
             buttons: [
                {
-                  text: this.replaceWithVars('button', this.settings.get('buttonText'), guild),
+                  text: this.replaceWithVars('button', this.settings.get('buttonText', 'Fuck %name'), guild),
                   color: 'red',
                   size: 'small',
                   look: 'outlined'
@@ -152,14 +137,14 @@ module.exports = class RelationshipsNotifier extends Plugin {
       }
       let user = this.userStore.getUser(data.relationship.id);
       if (!user || user === null) return;
-      if (this.settings.get('remove')) {
+      if (this.settings.get('remove', true)) {
          powercord.api.notices.sendToast(`rn_${this.random(20)}`, {
-            header: this.replaceWithVars('remove', this.settings.get('removeTitle'), user),
-            content: this.replaceWithVars('remove', this.settings.get('removeText'), user),
+            header: this.replaceWithVars('remove', this.settings.get('removeTitle', 'Someone removed you'), user),
+            content: this.replaceWithVars('remove', this.settings.get('removeText', 'Tag: %username#%usertag'), user),
             type: 'danger',
             buttons: [
                {
-                  text: this.replaceWithVars('button', this.settings.get('buttonText'), user),
+                  text: this.replaceWithVars('button', this.settings.get('buttonText', 'Fuck %name'), user),
                   color: 'red',
                   size: 'small',
                   look: 'outlined'
@@ -179,14 +164,14 @@ module.exports = class RelationshipsNotifier extends Plugin {
       let guild = this.cachedGuilds.find((g) => g.id == data.guildId);
       if (!guild || guild === null) return;
       this.removeGuildFromCache(guild.id);
-      if (this.settings.get('kick')) {
+      if (this.settings.get('kick', true)) {
          powercord.api.notices.sendToast(`rn_${this.random(20)}`, {
-            header: this.replaceWithVars('kick', this.settings.get('kickTitle'), guild),
-            content: this.replaceWithVars('kick', this.settings.get('kickText'), guild),
+            header: this.replaceWithVars('kick', this.settings.get('kickTitle', "You've been kicked"), guild),
+            content: this.replaceWithVars('kick', this.settings.get('kickText', 'Server Name: %servername'), guild),
             type: 'danger',
             buttons: [
                {
-                  text: this.replaceWithVars('button', this.settings.get('buttonText'), guild),
+                  text: this.replaceWithVars('button', this.settings.get('buttonText', 'Fuck %name'), guild),
                   color: 'red',
                   size: 'small',
                   look: 'outlined'
@@ -208,25 +193,16 @@ module.exports = class RelationshipsNotifier extends Plugin {
 
    replaceWithVars(type, text, object) {
       if (type === 'remove') {
-         return text
-            .replace('%username', object.username)
-            .replace('%usertag', object.discriminator)
-            .replace('%userid', object.id);
+         return text.replace('%username', object.username).replace('%usertag', object.discriminator).replace('%userid', object.id);
       } else if (['ban', 'kick'].includes(type)) {
          return text.replace('%servername', object.name).replace('%serverid', object.id);
       } else if (type === 'button' && !object.type) {
          return text.replace('%name', object.username ? object.username : object.name);
       } else if (type === 'group') {
-         let name =
-            object.name.length === 0
-               ? object.recipients.map((id) => this.userStore.getUser(id).username).join(', ')
-               : object.name;
+         let name = object.name.length === 0 ? object.recipients.map((id) => this.userStore.getUser(id).username).join(', ') : object.name;
          return text.replace('%groupname', name).replace('%groupid', object.id);
       } else {
-         let name =
-            object.name.length === 0
-               ? object.recipients.map((id) => this.userStore.getUser(id).username).join(', ')
-               : object.name;
+         let name = object.name.length === 0 ? object.recipients.map((id) => this.userStore.getUser(id).username).join(', ') : object.name;
          return text.replace('%name', name);
       }
    }
