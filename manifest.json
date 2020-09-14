@@ -1,7 +1,7 @@
 {
    "name": "Relationships Notifier",
    "description": "Notifies you when someone removes you from their friends list, you are banned/kicked from a server or kicked from a group chat.",
-   "author": "Twizzer#0001",
+   "maintainers": "Twizzer#0001 & AAGaming#9395",
    "version": "2.0",
    "license": "Unlicensed"
 }
