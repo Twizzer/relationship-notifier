@@ -1,4 +1,4 @@
-# Relationships Notifier [![CodeFactor](https://www.codefactor.io/repository/github/hellbound1337/relationships-notifier/badge)](https://www.codefactor.io/repository/github/hellbound1337/relationships-notifier)
+# Relationships Notifier
 
 A powercord plugin that notifies you when someone removes you from their friends list, you are banned/kicked from a server or kicked from a group chat.
 
