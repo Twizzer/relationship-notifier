@@ -13,7 +13,7 @@ module.exports = class RelationshipsNotifier extends Plugin {
 
       this.userStore = await getModule(['getCurrentUser', 'getUser']);
       this.guildStore = await getModule(['getGuild', 'getGuilds']);
-      this.channelStore = await getModule(['getChannel', 'getChannels']);
+      this.channelStore = await getModule(['getChannels']);
 
       this.cachedGroups = [...Object.values(this.channelStore.getChannels())].filter((c) => c.type === 3);
       this.cachedGuilds = [...Object.values(this.guildStore.getGuilds())];
